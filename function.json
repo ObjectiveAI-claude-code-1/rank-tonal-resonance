@@ -1,0 +1,131 @@
+{
+  "type": "vector.function",
+  "output_length": {
+    "$jmespath": "length(input.titles)"
+  },
+  "input_split": {
+    "$starlark": "[{\"game_description\": input[\"game_description\"], \"titles\": [title]} for title in input[\"titles\"]]"
+  },
+  "input_merge": {
+    "$starlark": "{\"game_description\": input[0][\"game_description\"], \"titles\": [item[\"titles\"][0] for item in input]}"
+  },
+  "input_schema": {
+    "type": "object",
+    "description": "A game description and candidate titles to rank by tonal resonance.",
+    "properties": {
+      "game_description": {
+        "type": "string",
+        "description": "A description of the video game conveying its mood, tone, and emotional character."
+      },
+      "titles": {
+        "type": "array",
+        "description": "Candidate titles to rank by how well each matches the game's emotional register, mood, and tone.",
+        "minItems": 2,
+        "items": {
+          "type": "string",
+          "description": "A candidate video game title."
+        }
+      }
+    },
+    "required": [
+      "game_description",
+      "titles"
+    ]
+  },
+  "tasks": [
+    {
+      "type": "vector.completion",
+      "messages": [
+        {
+          "role": "system",
+          "content": [
+            {
+              "type": "text",
+              "text": "You are a video game title writer with a refined sense of emotional weight. You understand that a title carries gravity or lightness before the reader has even processed its meaning. A title for a psychologically heavy game should land with heft. A title for a carefree game should feel unburdened. You match the emotional mass of a title to the emotional intensity of the experience."
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": {
+                "$starlark": "\"Here is a description of a video game:\\n\\n\" + input[\"game_description\"] + \"\\n\\nWrite a title for this game. The title should feel exactly as heavy or as light as the game itself.\""
+              }
+            }
+          ]
+        }
+      ],
+      "responses": {
+        "$starlark": "[[{\"type\": \"text\", \"text\": title}] for title in input[\"titles\"]]"
+      },
+      "output": {
+        "$jmespath": "output.scores"
+      }
+    },
+    {
+      "type": "vector.completion",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": {
+                "$starlark": "\"I'm developing a video game and need help choosing its title. The title should evoke the same mood and emotional atmosphere as the game — it should make someone feel, even for a moment, the way the game is meant to make them feel for hours. Here is the game's description:\\n\\n\" + input[\"game_description\"] + \"\\n\\nWhat would you title this game?\""
+              }
+            }
+          ]
+        }
+      ],
+      "responses": {
+        "$starlark": "[[{\"type\": \"text\", \"text\": title}] for title in input[\"titles\"]]"
+      },
+      "output": {
+        "$jmespath": "output.scores"
+      }
+    },
+    {
+      "type": "vector.completion",
+      "messages": [
+        {
+          "role": "system",
+          "content": [
+            {
+              "type": "text",
+              "text": "You are a creative director finalizing the title for a video game. You believe the perfect title does not merely land in the right emotional neighborhood — it captures the precise shade of feeling that defines this particular game. Two games can both be dark, but one is gothic and brooding while the other is nihilistic and cold. Their titles must not be interchangeable. The title you choose should feel inevitable, as though no other combination of words could so exactly name the texture of this experience."
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": {
+                "$starlark": "\"We need to finalize the title for our game. Here is the description:\\n\\n\" + input[\"game_description\"] + \"\\n\\nThe title needs to capture not just the general feeling of this game, but its specific emotional identity — the exact shade, not just the color. What is the title?\""
+              }
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "The title is: "
+            }
+          ]
+        }
+      ],
+      "responses": {
+        "$starlark": "[[{\"type\": \"text\", \"text\": title}] for title in input[\"titles\"]]"
+      },
+      "output": {
+        "$jmespath": "output.scores"
+      }
+    }
+  ],
+  "description": "Ranks candidate video game titles by tonal resonance — how well each title's emotional weight, mood, and expressive precision match the feel of the game as conveyed by its description. Titles that sound the way the game feels rank higher; titles that create tonal dissonance rank lower."
+}
